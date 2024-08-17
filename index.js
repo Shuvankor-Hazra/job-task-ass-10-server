@@ -9,8 +9,16 @@ const port = process.env.PORT || 5000;
 const app = express();
 
 // middleware
+const corsOptions = {
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://job-task-ass-10.firebaseapp.com",
+    "https://job-task-ass-10.web.app",
+  ]
+}
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cors());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fi65pdm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const client = new MongoClient(uri, {
@@ -28,37 +36,6 @@ async function run() {
     const penCollection = database.collection("pens");
 
     // Get all books data from DB for pagination
-    // app.get("/pens", async (req, res) => {
-    //   try {
-    //     // Get page and limit from query parameters
-    //     const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-    //     const limit = parseInt(req.query.limit) || 6; // Default to 10 items per page
-
-    //     // Calculate the number of documents to skip
-    //     const skipIndex = (page - 1) * limit;
-
-    //     // Fetch data from the pens collection with pagination
-    //     const result = await penCollection
-    //       .find()
-    //       .skip(skipIndex)
-    //       .limit(limit)
-    //       .toArray();
-
-    //     // Get the total count of documents in the collection
-    //     const totalDocuments = await penCollection.countDocuments();
-
-    //     // Send response with pagination info
-    //     res.send({
-    //       page,
-    //       totalPages: Math.ceil(totalDocuments / limit),
-    //       totalDocuments,
-    //       pens: result,
-    //     });
-    //   } catch (error) {
-    //     console.error("Error fetching pens:", error);
-    //     res.status(500).send({ message: "Error fetching pens" });
-    //   }
-    // });
 
     app.get("/pens", async (req, res) => {
       try {
@@ -85,7 +62,7 @@ async function run() {
           const [minPrice, maxPrice] = price.split('-').map(Number);
           query.price = { $gte: minPrice, $lte: maxPrice };
         }
-        if (search) query.name = { $regex: search, $options: 'i' }; // Case-insensitive search
+        if (search) query.name = { $regex: search, $options: 'i' };
 
         // Construct sort object
         const sort = {};
@@ -116,7 +93,6 @@ async function run() {
         res.status(500).send({ message: "Error fetching pens" });
       }
     });
-
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
