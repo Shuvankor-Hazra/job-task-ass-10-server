@@ -13,8 +13,8 @@ const corsOptions = {
   origin: [
     "http://localhost:5173",
     "http://localhost:5174",
-    "https://job-task-ass-10.firebaseapp.com",
     "https://job-task-ass-10.web.app",
+    "https://job-task-ass-10.firebaseapp.com",
   ]
 }
 app.use(cors(corsOptions));
@@ -36,10 +36,9 @@ async function run() {
     const penCollection = database.collection("pens");
 
     // Get all books data from DB for pagination
-
-    app.get("/pens", async (req, res) => {
+    app.get("/all_pens", async (req, res) => {
       try {
-        // Get query parameters
+        // get query parameters
         const {
           page = 1,
           limit = 6,
@@ -53,9 +52,8 @@ async function run() {
 
         const skipIndex = (parseInt(page) - 1) * parseInt(limit);
 
-        // Construct query object
+        // query object
         const query = {};
-
         if (brand) query.brand = brand;
         if (category) query.category = category;
         if (price) {
@@ -64,13 +62,15 @@ async function run() {
         }
         if (search) query.name = { $regex: search, $options: 'i' };
 
-        // Construct sort object
+        // sort object
         const sort = {};
-
         if (date) sort.createdAt = date === 'ascending' ? 1 : -1;
         if (sortPrice) sort.price = sortPrice === 'ascending' ? 1 : -1;
 
-        // Fetch data from the collection
+        // 
+        const totalProducts = await penCollection.countDocuments();
+
+        // fetch data from the collection
         const result = await penCollection
           .find(query)
           .sort(sort)
@@ -78,14 +78,15 @@ async function run() {
           .limit(parseInt(limit))
           .toArray();
 
-        // Get the total count of documents
+        // get the total count of documents
         const totalDocuments = await penCollection.countDocuments(query);
 
-        // Send response
+        // send response
         res.send({
           page: parseInt(page),
           totalPages: Math.ceil(totalDocuments / parseInt(limit)),
           totalDocuments,
+          totalProducts,
           pens: result,
         });
       } catch (error) {
@@ -100,11 +101,9 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
 app.get("/", (req, res) => {
   res.send("Job task is running.......");
 });
-
 app.listen(port, () => {
   console.log(`Server running on the port, ${port}`);
 });
