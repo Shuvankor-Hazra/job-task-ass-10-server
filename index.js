@@ -67,7 +67,7 @@ async function run() {
         if (date) sort.createdAt = date === 'ascending' ? 1 : -1;
         if (sortPrice) sort.price = sortPrice === 'ascending' ? 1 : -1;
 
-        // 
+        // total products count
         const totalProducts = await penCollection.countDocuments();
 
         // fetch data from the collection
@@ -78,7 +78,7 @@ async function run() {
           .limit(parseInt(limit))
           .toArray();
 
-        // get the total count of documents
+        // total count of documents
         const totalDocuments = await penCollection.countDocuments(query);
 
         // send response
